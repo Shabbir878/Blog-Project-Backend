@@ -9,90 +9,49 @@ class QueryBuilder<T> {
     this.query = query;
   }
 
-  //   search(searchableFields: string[]) {
-  //     const search = this?.query?.search;
-  //     if (search) {
-  //       this.modelQuery = this.modelQuery.find({
-  //         $or: searchableFields.map(
-  //           (field) =>
-  //             ({
-  //               [field]: { $regex: search, $options: 'i' },
-  //             }) as FilterQuery<T>,
-  //         ),
-  //       });
-  //     }
-
-  //     return this;
-  //   }
-
   search(searchableFields: string[]) {
-    const search = this?.query?.search;
+    const search = this?.query?.search as string;
     if (search) {
-      console.log('Search term:', search); // Debugging search term
-      this.modelQuery = this.modelQuery.find({
-        $or: searchableFields.map((field) => ({
-          [field]: { $regex: search, $options: 'i' }, // Ensure regex is correctly applied
-        })),
-      });
+      const searchConditions = searchableFields.map((field) => ({
+        [field]: { $regex: search, $options: 'i' }, // Case-insensitive regex
+      }));
+
+      this.modelQuery = this.modelQuery.find({ $or: searchConditions });
+      console.log('Search conditions:', searchConditions);
     }
     return this;
   }
 
-  //   filter() {
-  //     const queryObj = { ...this.query };
-
-  //     const excludeFields = [
-  //       'searchTerm',
-  //       'sort',
-  //       'page',
-  //       'limit',
-  //       'sortBy',
-  //       'sortOrder',
-  //       'fields',
-  //     ];
-
-  //     excludeFields.forEach((el) => delete queryObj[el]);
-
-  //     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
-
-  //     return this;
-  //   }
-
   filter() {
     const queryObj = { ...this.query };
-
     const excludeFields = [
-      'searchTerm',
-      'sort',
-      'page',
-      'limit',
+      'search',
       'sortBy',
       'sortOrder',
+      'page',
+      'limit',
       'fields',
     ];
 
-    excludeFields.forEach((el) => delete queryObj[el]);
+    excludeFields.forEach((field) => delete queryObj[field]);
 
     if (queryObj.filter) {
-      console.log('Applying filter:', queryObj.filter); // Log the filter being applied
-      queryObj.author = queryObj.filter; // Apply filter by authorId
-      delete queryObj.filter; // Remove filter field from query
+      queryObj.author = queryObj.filter;
+      delete queryObj.filter;
     }
 
-    console.log('Query after filter applied:', queryObj);
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
     return this;
   }
 
   sort() {
-    let sortStr;
+    const sortBy = this?.query?.sortBy as string;
+    const sortOrder = this?.query?.sortOrder as string;
 
-    const sortBy = this?.query?.sortBy;
-    const sortOrder = this?.query?.sortOrder;
-
-    sortStr = `${sortOrder === 'desc' ? '-' : ''}${sortBy}`;
-
-    this.modelQuery = this.modelQuery.sort(sortStr);
+    if (sortBy) {
+      const sortStr = `${sortOrder === 'desc' ? '-' : ''}${sortBy}`;
+      this.modelQuery = this.modelQuery.sort(sortStr);
+    }
     return this;
   }
 
@@ -106,10 +65,13 @@ class QueryBuilder<T> {
   }
 
   fields() {
-    const fields =
-      (this?.query?.fields as string)?.split(',')?.join(' ') || '-__v';
+    // Default to specific fields if no fields parameter is provided
+    const fields = this.query.fields
+      ? (this.query.fields as string).split(',').join(' ')
+      : '_id title content author'; // Default fields
 
     this.modelQuery = this.modelQuery.select(fields);
+    console.log('Fields applied:', fields);
     return this;
   }
 }

@@ -1,4 +1,6 @@
+import { StatusCodes } from 'http-status-codes';
 import config from '../../config';
+import AppError from '../../errors/AppError';
 import { IUser } from '../User/user.interface';
 import { User } from '../User/user.model';
 import { ILoginUser } from './auth.interface';
@@ -103,12 +105,58 @@ const register = async (payload: IUser) => {
   };
 };
 
+// const login = async (payload: ILoginUser) => {
+//   // Using static method to check if the email exists
+//   const user = await User.isUserEmailExists(payload.email);
+
+//   if (!user) {
+//     throw new Error('User not found');
+//   }
+
+//   // Using static method to check if the password is matched
+//   const isPasswordMatched = await User.isPasswordMatched(
+//     payload.password,
+//     user.password,
+//   );
+
+//   if (!isPasswordMatched) {
+//     throw new Error('Invalid password');
+//   }
+
+//   // create jwt payload & token
+//   if (!user || !user._id) {
+//     throw new Error('User ID is undefined');
+//   }
+
+//   const jwtPayload = {
+//     id: user._id.toString(),
+//     email: user.email,
+//     role: user.role,
+//   };
+
+//   // console.log('JWT Payload:', jwtPayload); // Check the payload structure
+
+//   const accessToken = createToken(
+//     jwtPayload,
+//     config.jwt_access_secret as string,
+//     config.jwt_access_expires_in as string,
+//   );
+
+//   // console.log('Generated Token:', accessToken); // Check the generated token
+
+//   return {
+//     data: {
+//       token: accessToken,
+//     },
+//   };
+// };
+
 const login = async (payload: ILoginUser) => {
   // Using static method to check if the email exists
   const user = await User.isUserEmailExists(payload.email);
 
   if (!user) {
-    throw new Error('User not found');
+    throw new AppError(StatusCodes.UNAUTHORIZED, 'User not found');
   }
 
   // Using static method to check if the password is matched
@@ -118,12 +166,15 @@ const login = async (payload: ILoginUser) => {
   );
 
   if (!isPasswordMatched) {
-    throw new Error('Invalid password');
+    throw new AppError(StatusCodes.UNAUTHORIZED, 'Invalid credentials');
   }
 
   // create jwt payload & token
   if (!user || !user._id) {
-    throw new Error('User ID is undefined');
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'User ID is undefined',
+    );
   }
 
   const jwtPayload = {
@@ -132,15 +183,11 @@ const login = async (payload: ILoginUser) => {
     role: user.role,
   };
 
-  console.log('JWT Payload:', jwtPayload); // Check the payload structure
-
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
     config.jwt_access_expires_in as string,
   );
-
-  console.log('Generated Token:', accessToken); // Check the generated token
 
   return {
     data: {

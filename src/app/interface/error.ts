@@ -4,11 +4,12 @@ export type TErrorSource = {
 }[];
 
 export type TGenericErrorResponse = {
+  errorDetails: TErrorSource;
   success: boolean;
   statusCode: number;
   message: string;
   error: {
     details: TErrorSource;
   };
-  stack?: string; // Optional stack trace for debugging
+  stack?: string;
 };

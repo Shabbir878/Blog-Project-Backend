@@ -44,7 +44,7 @@ const createBlogIntoDB = async (payload: IBlog) => {
     // Rollback the transaction in case of an error
     await session.abortTransaction();
     session.endSession();
-    throw error; // Rethrow the error to be handled by the caller
+    throw error;
   }
 };
 
@@ -67,6 +67,7 @@ const createBlogIntoDB = async (payload: IBlog) => {
 // };
 
 const getAllBlogFromDB = async (query: Record<string, unknown>) => {
+  console.log('main', query);
   const searchableFields = ['title', 'content']; // Fields to search on
 
   let dbQuery = Blog.find().populate('author', 'name email'); // Base query
@@ -75,8 +76,10 @@ const getAllBlogFromDB = async (query: Record<string, unknown>) => {
   const queryBuilder = new QueryBuilder(dbQuery, query);
   queryBuilder.search(searchableFields).filter().sort().paginate().fields();
 
+  console.log('Final Query:', queryBuilder.modelQuery.getQuery());
+
   // Execute the query and fetch the results
-  const blogs = await queryBuilder.modelQuery.exec();
+  const blogs = await queryBuilder.modelQuery;
 
   return blogs;
 };
