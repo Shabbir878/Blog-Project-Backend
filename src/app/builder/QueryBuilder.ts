@@ -17,7 +17,6 @@ class QueryBuilder<T> {
       }));
 
       this.modelQuery = this.modelQuery.find({ $or: searchConditions });
-      console.log('Search conditions:', searchConditions);
     }
     return this;
   }
@@ -71,7 +70,6 @@ class QueryBuilder<T> {
       : '_id title content author'; // Default fields
 
     this.modelQuery = this.modelQuery.select(fields);
-    console.log('Fields applied:', fields);
     return this;
   }
 }

@@ -48,24 +48,6 @@ const createBlogIntoDB = async (payload: IBlog) => {
   }
 };
 
-// const getAllBlogFromDB = async (query: Record<string, unknown>) => {
-//   // Initialize QueryBuilder with Blog model query and query parameters
-//   const blogQuery = new QueryBuilder(
-//     Blog.find().populate('author', 'name email'),
-//     query,
-//   );
-
-//   // Apply search, filter, sort, paginate, and fields
-//   blogQuery.search(['title', 'content']).filter().sort().paginate().fields();
-
-//   console.log('Final Query:', blogQuery.modelQuery.getQuery());
-
-//   // Execute and return the result
-//   const result = await blogQuery.modelQuery;
-
-//   return result;
-// };
-
 const getAllBlogFromDB = async (query: Record<string, unknown>) => {
   console.log('main', query);
   const searchableFields = ['title', 'content']; // Fields to search on
