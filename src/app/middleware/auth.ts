@@ -11,36 +11,47 @@ const auth = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req, res, next) => {
     const accessToken = req.header('Authorization')?.replace('Bearer ', '');
 
-    // checking if the token is missing
+    // Check if the token is missing
     if (!accessToken) {
       throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'You are not authorized to access this route',
+        StatusCodes.UNAUTHORIZED,
+        'Authentication token is missing or invalid',
       );
     }
 
-    // checking if the token is valid
-    const decoded = jwt.verify(
-      accessToken,
-      config.jwt_access_secret as string,
-    ) as JwtPayload;
+    // Verify the token
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(
+        accessToken,
+        config.jwt_access_secret as string,
+      ) as JwtPayload;
+    } catch (err) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'Invalid or expired token');
+    }
 
-    console.log('Decoded JWT:', decoded);
+    //console.log('Decoded JWT:', decoded);
+
     const { id, role, email } = decoded;
 
-    // checking if the user exists
+    // Check if the user exists
     const user = await User.findOne({ email });
-
     if (!user) {
-      throw new Error('User not found');
+      throw new AppError(
+        StatusCodes.UNAUTHORIZED,
+        'User associated with this token no longer exists',
+      );
     }
 
-    // checking if the user has the required role
-    if (requiredRoles && !requiredRoles.includes(role)) {
-      throw new Error('You are not Authorized');
+    // Check if the user has the required role
+    if (requiredRoles.length && !requiredRoles.includes(role)) {
+      throw new AppError(
+        StatusCodes.FORBIDDEN,
+        'You do not have permission to access this resource',
+      );
     }
 
-    // req.user = decoded as JwtPayload;
+    // Attach the user to the request object
     req.user = { id, role, email };
     next();
   });
