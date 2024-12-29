@@ -3,7 +3,6 @@ import config from '../config';
 import AppError from '../errors/AppError';
 import { TUserRole } from '../modules/User/user.constant';
 import { User } from '../modules/User/user.model';
-
 import catchAsync from '../utils/catchAsync';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
